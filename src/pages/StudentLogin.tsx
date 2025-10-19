@@ -7,18 +7,17 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ArrowLeft, GraduationCap } from "lucide-react";
 import { toast } from "sonner";
-import attendoLogo from "@/assets/attendo-logo.png";
 
 const StudentLogin = () => {
   const navigate = useNavigate();
-  const [rollNumber, setRollNumber] = useState("");
-  const [password, setPassword] = useState("");
+  const [roll, setRoll] = useState("");
+  const [pwd, setPwd] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!rollNumber || !password) {
+    if (!roll || !pwd) {
       toast.error("Please fill in all fields");
       return;
     }
@@ -28,9 +27,9 @@ const StudentLogin = () => {
     // Custom login using students table
     const { data, error } = await (supabase as any)
       .from('students')
-      .select('id, full_name, email, class_id, roll_number')
-      .eq('roll_number', rollNumber)
-      .eq('password', password)
+  .select('id, full_name, class_id, roll_number')
+  .eq('roll_number', roll)
+  .eq('password', pwd)
       .single();
     if (error || !data) {
       toast.error('Invalid credentials');
@@ -71,8 +70,8 @@ const StudentLogin = () => {
                 id="rollNumber"
                 type="text"
                 placeholder="Enter your roll number"
-                value={rollNumber}
-                onChange={(e) => setRollNumber(e.target.value)}
+                value={roll}
+                onChange={(e) => setRoll(e.target.value)}
                 required
               />
             </div>
@@ -83,8 +82,8 @@ const StudentLogin = () => {
                 id="password"
                 type="password"
                 placeholder="Student@123"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                value={pwd}
+                onChange={(e) => setPwd(e.target.value)}
                 required
               />
             </div>

@@ -24,13 +24,7 @@ const StudentAttendance = () => {
   const [subjects, setSubjects] = useState<any[]>([]);
   const [classInfo, setClassInfo] = useState<any>(null);
 
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      if (!data.session) {
-        navigate("/student-login");
-      }
-    });
-  }, [navigate]);
+  // No auth gating for students; rely on in-app login and sessionStorage
 
   useEffect(() => {
     if (!student) {
