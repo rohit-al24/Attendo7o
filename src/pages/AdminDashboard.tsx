@@ -1,6 +1,6 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { LogOut, Users, GraduationCap, FileText, Settings } from "lucide-react";
+import { LogOut, Users, GraduationCap, FileText, Settings, ClipboardList } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -42,6 +42,13 @@ const AdminDashboard = () => {
   }, []);
 
   const managementOptions = [
+    {
+      title: "Exam Management",
+      description: "Create exams and assign classes",
+      icon: ClipboardList,
+      path: "/admin/exams",
+      available: true
+    },
     {
       title: "Faculty Management",
       description: "Create accounts, assign roles, and manage faculty",

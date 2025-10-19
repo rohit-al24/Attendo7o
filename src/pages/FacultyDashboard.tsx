@@ -196,19 +196,19 @@ const FacultyDashboard = () => {
                     size="lg" 
                     className="h-24 flex flex-col gap-2" 
                     variant="outline"
-                    onClick={() => facultyData?.advisorClassId && navigate(`/faculty/AdvisorAttendanceEdit?classId=${encodeURIComponent(facultyData.advisorClassId)}`)}
+                    onClick={() => navigate('/faculty/publish-results')}
                   >
                     <ClipboardList className="w-6 h-6" />
-                    <span>Edit Previous Attendance</span>
+                    <span>Publish Results</span>
                   </Button>
                   <Button 
                     size="lg" 
                     className="h-24 flex flex-col gap-2" 
-                    variant="default"
-                    onClick={() => navigate('/faculty/publish-results')}
+                    variant="outline"
+                    onClick={() => facultyData?.advisorClassId && navigate(`/faculty/AdvisorAttendanceEdit?classId=${encodeURIComponent(facultyData.advisorClassId)}`)}
                   >
-                    <BookOpen className="w-6 h-6" />
-                    <span>Publish Results</span>
+                    <ClipboardList className="w-6 h-6" />
+                    <span>Edit Previous Attendance</span>
                   </Button>
                 </div>
               </div>
