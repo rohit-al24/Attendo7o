@@ -37,6 +37,10 @@ const StudentLogin = () => {
       setLoading(false);
       return;
     }
+    // Persist student in session storage for later pages
+    try {
+      sessionStorage.setItem('student', JSON.stringify(data));
+    } catch {}
     // Successful login, route to dashboard
     navigate('/student-dashboard', { state: { student: data } });
     setLoading(false);

@@ -201,6 +201,15 @@ const FacultyDashboard = () => {
                     <ClipboardList className="w-6 h-6" />
                     <span>Edit Previous Attendance</span>
                   </Button>
+                  <Button 
+                    size="lg" 
+                    className="h-24 flex flex-col gap-2" 
+                    variant="default"
+                    onClick={() => navigate('/faculty/publish-results')}
+                  >
+                    <BookOpen className="w-6 h-6" />
+                    <span>Publish Results</span>
+                  </Button>
                 </div>
               </div>
             </Card>

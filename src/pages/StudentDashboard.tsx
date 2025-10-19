@@ -1,17 +1,23 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { LogOut, User, Book } from "lucide-react";
+import { LogOut, User, Megaphone, Vote, FileBarChart, MessageSquare, IdCard } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
-import CircularProgress from "@/components/CircularProgress";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 const StudentDashboard = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const student = location.state?.student;
-  const [attendance, setAttendance] = useState<number>(0);
-  const [subjects, setSubjects] = useState<any[]>([]);
+  const stateStudent = (location.state as any)?.student;
+  const student = useMemo(() => {
+    if (stateStudent) return stateStudent;
+    try {
+      const str = sessionStorage.getItem("student");
+      return str ? JSON.parse(str) : null;
+    } catch {
+      return null;
+    }
+  }, [stateStudent]);
   const [classInfo, setClassInfo] = useState<any>(null);
 
   useEffect(() => {
@@ -22,13 +28,11 @@ const StudentDashboard = () => {
     });
   }, [navigate]);
 
-  // Mock student data - In real app, this would come from backend
   useEffect(() => {
     if (!student) {
       navigate('/student-login');
       return;
     }
-    // Fetch class info
     const fetchClass = async () => {
       const { data } = await supabase
         .from('classes')
@@ -38,58 +42,6 @@ const StudentDashboard = () => {
       setClassInfo(data);
     };
     fetchClass();
-
-    // Fetch attendance records for student
-    const fetchAttendance = async () => {
-      const { data } = await supabase
-        .from('attendance_records')
-        .select('subject, status, faculty_id')
-        .eq('student_id', student.id);
-      if (!data) return;
-      // Calculate overall attendance
-      const total = data.length;
-      const present = data.filter((r: any) => r.status === 'present').length;
-      setAttendance(total ? Math.round((present / total) * 1000) / 10 : 0);
-
-      // Fetch faculty names for faculty_ids present
-      const facultyIds = Array.from(new Set(data.map((r: any) => r.faculty_id).filter(Boolean)));
-      let facultyMap: Record<string, string> = {};
-      if (facultyIds.length > 0) {
-        const { data: facultyData } = await supabase
-          .from('faculty')
-          .select('id, full_name')
-          .in('id', facultyIds);
-        if (facultyData) facultyData.forEach((f: any) => { facultyMap[f.id] = f.full_name; });
-      }
-
-      // Group attendance records by subject, period, and faculty
-      const grouped: Record<string, any[]> = {};
-      data.forEach((r: any) => {
-        const key = `${r.subject}|${r.period_number}|${r.faculty_id}`;
-        if (!grouped[key]) grouped[key] = [];
-        grouped[key].push(r);
-      });
-      // Prepare rows for table
-      const rows = Object.entries(grouped).map(([key, records]) => {
-        const [subject, period, facultyId] = key.split('|');
-        const present = records.filter((r: any) => r.status === 'present').length;
-        const absent = records.filter((r: any) => r.status === 'absent').length;
-        const onduty = records.filter((r: any) => r.status === 'onduty').length;
-        const total = records.length;
-        return {
-          facultyName: facultyMap[facultyId] || 'Unknown',
-          subject,
-          period,
-          present,
-          absent,
-          onduty,
-          total,
-          percentage: total ? ((present / total) * 100).toFixed(2) + '%' : '0%'
-        };
-      });
-      setSubjects(rows);
-    };
-    fetchAttendance();
   }, [student, navigate]);
 
   return (
@@ -116,82 +68,53 @@ const StudentDashboard = () => {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8 space-y-6">
-        {/* Student Info Card */}
-        <Card className="shadow-medium">
-          <div className="p-6 space-y-4">
-            <h2 className="text-2xl font-bold flex items-center gap-2">
-              <User className="w-6 h-6 text-primary" />
-              Student Information
-            </h2>
-            <div className="grid md:grid-cols-3 gap-4">
-              <div className="space-y-1">
-                <p className="text-sm text-muted-foreground">Name</p>
-                <p className="text-lg font-semibold">{student?.full_name}</p>
+      <main className="container mx-auto px-4 py-6 space-y-4">
+        {/* Top: Info left, profile right */}
+        <Card className="shadow-medium p-4 sm:p-6">
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex-1">
+              <p className="text-sm text-muted-foreground">Hello,</p>
+              <h2 className="text-2xl sm:text-3xl font-bold tracking-tight animate-in fade-in slide-in-from-left-2 duration-500">
+                {student?.full_name}
+              </h2>
+              <div className="mt-2 grid grid-cols-2 gap-2 text-sm sm:text-base">
+                <div>
+                  <p className="text-muted-foreground">Roll No</p>
+                  <p className="font-semibold">{student?.roll_number}</p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground">Department</p>
+                  <p className="font-semibold">{classInfo?.department || '-'}</p>
+                </div>
               </div>
-              <div className="space-y-1">
-                <p className="text-sm text-muted-foreground">Roll Number</p>
-                <p className="text-lg font-semibold">{student?.roll_number}</p>
-              </div>
-              <div className="space-y-1">
-                <p className="text-sm text-muted-foreground">Department</p>
-                <p className="text-lg font-semibold">{classInfo?.department || '-'}</p>
-              </div>
+            </div>
+            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-br from-primary to-purple-500 shadow-lg flex items-center justify-center ring-2 ring-primary/20 animate-in fade-in slide-in-from-right-2 duration-500">
+              <User className="w-8 h-8 text-white" />
             </div>
           </div>
         </Card>
 
-        {/* Overall Attendance */}
-        <Card className="shadow-medium">
-          <div className="p-6 text-center space-y-4">
-            <h2 className="text-2xl font-bold">Overall Attendance</h2>
-            <div className="flex justify-center py-4">
-              <CircularProgress 
-                percentage={attendance} 
-                size={160}
-                strokeWidth={12}
-              />
-            </div>
-          </div>
-        </Card>
-
-        {/* Detailed Attendance Records Table */}
-        <Card className="shadow-medium">
-          <div className="p-6 space-y-4">
-            <h2 className="text-2xl font-bold flex items-center gap-2">
-              <Book className="w-6 h-6 text-primary" />
-              Detailed Attendance Records
-            </h2>
-            <table className="w-full text-center border">
-              <thead>
-                <tr>
-                  <th>Faculty Name</th>
-                  <th>Subject</th>
-                  <th>Period</th>
-                  <th>Present</th>
-                  <th>Absent</th>
-                  <th>On Duty</th>
-                  <th>Total</th>
-                  <th>Percentage</th>
-                </tr>
-              </thead>
-              <tbody>
-                {subjects.map((row, idx) => (
-                  <tr key={idx}>
-                    <td>{row.facultyName}</td>
-                    <td>{row.subject}</td>
-                    <td>{row.period}</td>
-                    <td>{row.present}</td>
-                    <td>{row.absent}</td>
-                    <td>{row.onduty}</td>
-                    <td>{row.total}</td>
-                    <td>{row.percentage}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </Card>
+        {/* 3x2 grid buttons */}
+        <div className="grid grid-cols-2 gap-3 sm:gap-4">
+          <Button className="h-24 sm:h-28 rounded-xl bg-primary text-primary-foreground hover:opacity-90 shadow-md" onClick={() => navigate('/student/attendance', { state: { student } })}>
+            Attendance
+          </Button>
+          <Button className="h-24 sm:h-28 rounded-xl bg-emerald-600 text-white hover:opacity-90 shadow-md" onClick={() => navigate('/student/announcements')}>
+            Announcements
+          </Button>
+          <Button className="h-24 sm:h-28 rounded-xl bg-amber-500 text-black hover:opacity-90 shadow-md" onClick={() => navigate('/student/votings')}>
+            Class Votings
+          </Button>
+          <Button className="h-24 sm:h-28 rounded-xl bg-indigo-600 text-white hover:opacity-90 shadow-md" onClick={() => navigate('/student/results', { state: { student } })}>
+            Results
+          </Button>
+          <Button className="h-24 sm:h-28 rounded-xl bg-rose-500 text-white hover:opacity-90 shadow-md" onClick={() => navigate('/student/feedback')}>
+            Feedback
+          </Button>
+          <Button className="h-24 sm:h-28 rounded-xl bg-slate-700 text-white hover:opacity-90 shadow-md" onClick={() => navigate('/student/profile')}>
+            Profile
+          </Button>
+        </div>
       </main>
     </div>
   );
