@@ -1,23 +1,122 @@
+import { supabase } from "@/integrations/supabase/client";
+// F1 car style name animation with lightning effect
+const F1NameLightning = ({ name }: { name?: string }) => {
+  const [animating, setAnimating] = useState(true);
+  const [style, setStyle] = useState<React.CSSProperties>({ transform: 'translateX(100vw)', filter: 'brightness(2) drop-shadow(0 0 8px #fff)' });
+  useEffect(() => {
+    let start = Date.now();
+    let raf: number;
+    const duration = 3000;
+    const animate = () => {
+      const elapsed = Date.now() - start;
+      if (elapsed < duration) {
+        // F1 car: fast to slow slide-in
+        const progress = elapsed / duration;
+        const ease = 1 - Math.pow(1 - progress, 2);
+        const x = 100 - 100 * ease; // from 100vw to 0
+        const glow = 2 - ease; // glow fades out
+        setStyle({
+          transform: `translateX(${x}vw)`,
+          transition: 'transform 0.05s linear',
+          filter: `brightness(${glow}) drop-shadow(0 0 ${8 * glow}px #fff)`,
+        });
+        raf = window.requestAnimationFrame(animate);
+      } else {
+        setStyle({
+          transform: 'translateX(0)',
+          transition: 'transform 0.5s cubic-bezier(0.22, 1, 0.36, 1)',
+          filter: 'brightness(1.2) drop-shadow(0 0 12px #00f8) drop-shadow(0 0 24px #fff)',
+        });
+        setAnimating(false);
+      }
+    };
+    animate();
+    return () => { if (raf) window.cancelAnimationFrame(raf); };
+  }, []);
+  return (
+    <h2
+      className="text-2xl sm:text-3xl font-bold tracking-tight relative"
+      style={style}
+    >
+      {name}
+      {animating && (
+        <span className="absolute left-0 top-1/2 -translate-y-1/2 w-10 h-2 bg-gradient-to-r from-yellow-400 via-white to-blue-400 animate-pulse" style={{ zIndex: 1, filter: 'blur(2px)' }} />
+      )}
+    </h2>
+  );
+};
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { LogOut, User, Megaphone, Vote, FileBarChart, MessageSquare, IdCard } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { useEffect, useMemo, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import React, { useEffect, useState, useRef } from "react";
+// Coin spinning animation for profile photo
+const ProfilePhotoSpin = ({ profileUrl, fullName }: { profileUrl?: string; fullName?: string }) => {
+  const imgRef = useRef<HTMLImageElement>(null);
+  const [spinning, setSpinning] = useState(true);
+  const [spinStyle, setSpinStyle] = useState<React.CSSProperties>({});
+
+    useEffect(() => {
+      let start = Date.now();
+      let raf: number;
+      const duration = 3000; // 3 seconds
+      const animate = () => {
+        const elapsed = Date.now() - start;
+        if (elapsed < duration) {
+          // Fast to slow: ease out
+          const progress = elapsed / duration;
+          const ease = 1 - Math.pow(1 - progress, 2);
+          const deg = 1080 * (1 - ease) + 360 * ease; // 3 spins to 1 spin
+          setSpinStyle({ transform: `rotateY(${deg}deg)`, transition: 'transform 0.05s linear' });
+          raf = window.requestAnimationFrame(animate);
+        } else {
+          setSpinStyle({ transform: 'rotateY(0deg)', transition: 'transform 0.5s cubic-bezier(0.22, 1, 0.36, 1)' });
+          setSpinning(false);
+        }
+      };
+      animate();
+      return () => { if (raf) window.cancelAnimationFrame(raf); };
+    }, []);
+
+    return (
+      <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-br from-primary to-purple-500 shadow-lg flex items-center justify-center ring-2 ring-primary/20 overflow-hidden border-2 border-white" style={spinStyle}>
+        {profileUrl ? (
+          <img
+            ref={imgRef}
+            src={profileUrl}
+            alt="profile"
+            className="w-full h-full object-cover"
+            onError={e => { e.currentTarget.onerror = null; e.currentTarget.src = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(fullName || 'Student'); }}
+            style={{ aspectRatio: '1/1', background: 'white', backfaceVisibility: 'hidden' }}
+          />
+        ) : (
+          <User className="w-8 h-8 text-white" />
+        )}
+      </div>
+    );
+  };
 
 const StudentDashboard = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const stateStudent = (location.state as any)?.student;
-  const student = useMemo(() => {
-    if (stateStudent) return stateStudent;
+  const [student, setStudent] = useState<any>(() => {
     try {
       const str = sessionStorage.getItem("student");
       return str ? JSON.parse(str) : null;
     } catch {
       return null;
     }
-  }, [stateStudent]);
+  });
+
+  useEffect(() => {
+    // Always refresh student from sessionStorage on mount
+    try {
+      const str = sessionStorage.getItem("student");
+      setStudent(str ? JSON.parse(str) : null);
+    } catch {
+      setStudent(null);
+    }
+  }, []);
   const [classInfo, setClassInfo] = useState<any>(null);
 
   // No auth gating for students; rely on in-app login and sessionStorage
@@ -68,9 +167,7 @@ const StudentDashboard = () => {
           <div className="flex items-center justify-between gap-4">
             <div className="flex-1">
               <p className="text-sm text-muted-foreground">Hello,</p>
-              <h2 className="text-2xl sm:text-3xl font-bold tracking-tight animate-in fade-in slide-in-from-left-2 duration-500">
-                {student?.full_name}
-              </h2>
+              <F1NameLightning name={student?.full_name} />
               <div className="mt-2 grid grid-cols-2 gap-2 text-sm sm:text-base">
                 <div>
                   <p className="text-muted-foreground">Roll No</p>
@@ -82,9 +179,8 @@ const StudentDashboard = () => {
                 </div>
               </div>
             </div>
-            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-br from-primary to-purple-500 shadow-lg flex items-center justify-center ring-2 ring-primary/20 animate-in fade-in slide-in-from-right-2 duration-500">
-              <User className="w-8 h-8 text-white" />
-            </div>
+            <ProfilePhotoSpin profileUrl={student?.profile_url} fullName={student?.full_name} />
+
           </div>
         </Card>
 

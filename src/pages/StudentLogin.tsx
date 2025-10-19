@@ -27,9 +27,9 @@ const StudentLogin = () => {
     // Custom login using students table
     const { data, error } = await (supabase as any)
       .from('students')
-  .select('id, full_name, class_id, roll_number')
-  .eq('roll_number', roll)
-  .eq('password', pwd)
+      .select('id, full_name, class_id, roll_number, profile_url')
+      .eq('roll_number', roll)
+      .eq('password', pwd)
       .single();
     if (error || !data) {
       toast.error('Invalid credentials');
