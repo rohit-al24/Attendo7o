@@ -22,9 +22,9 @@ import AttendanceMarking from "./pages/faculty/AttendanceMarking";
 import TimetableManagement from "./pages/faculty/TimetableManagement";
 import AdvisorAttendanceReport from "./pages/faculty/AdvisorAttendanceReport";
 import AdvisorAttendanceEdit from "./pages/faculty/AdvisorAttendanceEdit";
-import PublishResults from "./pages/faculty/PublishResults";
-import StudentResults from "./pages/student/StudentResults";
 import NotFound from "./pages/NotFound";
+import FacultyClassResults from "./pages/faculty/ClassResults";
+import FacultyExamMarks from "./pages/faculty/ExamMarks";
 
 
 // Wrapper to extract classId from query params and pass to AdvisorAttendanceReport
@@ -42,7 +42,7 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
-      <BrowserRouter basename={import.meta.env.BASE_URL}>
+      <BrowserRouter>
         <Routes>
           <Route path="/" element={<Splash />} />
           <Route path="/login-selection" element={<LoginSelection />} />
@@ -58,10 +58,10 @@ const App = () => (
           <Route path="/admin/faculty-activities" element={<FacultyActivities />} />
           <Route path="/faculty/attendance-marking" element={<AttendanceMarking />} />
           <Route path="/faculty/timetable-management" element={<TimetableManagement />} />
-          <Route path="/faculty/publish-results" element={<PublishResults />} />
-          <Route path="/student/results" element={<StudentResults />} />
           <Route path="/faculty/advisor-attendance-report" element={<AdvisorAttendanceReportWrapper />} />
           <Route path="/faculty/AdvisorAttendanceEdit" element={<AdvisorAttendanceEdit />} />
+          <Route path="/faculty/class-results" element={<FacultyClassResults />} />
+          <Route path="/faculty/exam-marks" element={<FacultyExamMarks />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

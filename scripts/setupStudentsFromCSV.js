@@ -36,50 +36,8 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-var winston = require("winston");
-var fs = require("fs");
-var path = require("path");
 var supabase_js_1 = require("@supabase/supabase-js");
 var uuid_1 = require("uuid");
-
-// Ensure logs directory exists and set absolute file path
-const logsDir = path.resolve(__dirname, 'logs');
-if (!fs.existsSync(logsDir)) {
-    fs.mkdirSync(logsDir, { recursive: true });
-}
-const logFile = path.join(logsDir, 'students-setup.log');
-
-// Winston logger setup
-const logger = winston.createLogger({
-    level: 'info',
-    format: winston.format.combine(
-        winston.format.timestamp(),
-        winston.format.printf(({ timestamp, level, message }) => `${timestamp} [${level}]: ${message}`)
-    ),
-    transports: [
-        new winston.transports.Console(),
-        new winston.transports.File({ filename: logFile, level: 'info' })
-    ]
-});
-
-// Global error handlers to guarantee errors hit the log file
-process.on('unhandledRejection', (reason) => {
-    try {
-        logger.error(`Unhandled Rejection: ${reason && reason.stack ? reason.stack : reason}`);
-    } catch (_) {
-        // no-op
-    }
-});
-process.on('uncaughtException', (err) => {
-    try {
-        logger.error(`Uncaught Exception: ${err && err.stack ? err.stack : err}`);
-    } catch (_) {
-        // no-op
-    } finally {
-        // Give logger a tick to flush
-        setTimeout(() => process.exit(1), 10);
-    }
-});
 var fs_1 = require("fs");
 var path_1 = require("path");
 var sync_1 = require("csv-parse/lib/sync");
@@ -96,14 +54,12 @@ function parseCSV(filePath) {
         skip_empty_lines: true,
     });
 }
-
 function setupStudents() {
     return __awaiter(this, void 0, void 0, function () {
-        var students, count, _i, students_1, student, uuid, err_1;
+        var students, count, _i, students_1, student, uuid;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
-                    _a.trys.push([0, 7, , 8]);
                     students = parseCSV(csvPath);
                     count = 0;
                     _i = 0, students_1 = students;
@@ -114,53 +70,41 @@ function setupStudents() {
                     uuid = (0, uuid_1.v4)();
                     // Insert into profiles
                     return [4 /*yield*/, supabase.from('profiles').insert({
-                        id: uuid,
-                        email: student.email,
-                        full_name: student.name,
-                    })];
+                            id: uuid,
+                            email: student.email,
+                            full_name: student.name,
+                        })];
                 case 2:
-                    // Capture and log any error from Supabase (doesn't throw by default)
-                    const _profilesRes = _a.sent();
-                    if (_profilesRes && _profilesRes.error) {
-                        logger.error(`profiles insert failed for ${student.email}: ${_profilesRes.error.message}`);
-                    }
+                    // Insert into profiles
+                    _a.sent();
                     // Insert into students
                     return [4 /*yield*/, supabase.from('students').insert({
-                        id: uuid,
-                        full_name: student.name,
-                        roll_number: student.roll_number,
-                        user_id: uuid,
-                    })];
+                            id: uuid,
+                            full_name: student.name,
+                            roll_number: student.roll_number,
+                            user_id: uuid,
+                        })];
                 case 3:
-                    const _studentsRes = _a.sent();
-                    if (_studentsRes && _studentsRes.error) {
-                        logger.error(`students insert failed for ${student.email}: ${_studentsRes.error.message}`);
-                    }
+                    // Insert into students
+                    _a.sent();
                     // Insert into user_roles
                     return [4 /*yield*/, supabase.from('user_roles').insert({
-                        user_id: uuid,
-                        role: 'student',
-                    })];
+                            user_id: uuid,
+                            role: 'student',
+                        })];
                 case 4:
-                    const _rolesRes = _a.sent();
-                    if (_rolesRes && _rolesRes.error) {
-                        logger.error(`user_roles insert failed for ${student.email}: ${_rolesRes.error.message}`);
-                    }
+                    // Insert into user_roles
+                    _a.sent();
                     count++;
                     _a.label = 5;
                 case 5:
                     _i++;
                     return [3 /*break*/, 1];
                 case 6:
-                    logger.info(`Inserted ${count} students into Supabase.`);
-                    return [2 /*return*/];
-                case 7:
-                    err_1 = _a.sent();
-                    logger.error(`Error inserting students: ${err_1.stack || err_1}`);
+                    console.log("Inserted ".concat(count, " students into Supabase."));
                     return [2 /*return*/];
             }
         });
     });
 }
-
 setupStudents();

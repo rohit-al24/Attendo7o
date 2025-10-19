@@ -28,7 +28,7 @@ const StudentLogin = () => {
     // Custom login using students table
     const { data, error } = await (supabase as any)
       .from('students')
-      .select('id, full_name, class_id, roll_number, profile_url')
+      .select('id, full_name, email, class_id, roll_number')
       .eq('roll_number', rollNumber)
       .eq('password', password)
       .single();
@@ -37,10 +37,7 @@ const StudentLogin = () => {
       setLoading(false);
       return;
     }
-    // Successful login: persist lightweight student session and route to dashboard
-    try {
-      localStorage.setItem('studentSession', JSON.stringify(data));
-    } catch {}
+    // Successful login, route to dashboard
     navigate('/student-dashboard', { state: { student: data } });
     setLoading(false);
   };
