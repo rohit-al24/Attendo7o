@@ -152,41 +152,55 @@ const StudentAttendance = () => {
           </div>
         </Card>
 
-        {/* Detailed Attendance Records Table */}
+        {/* Detailed Attendance Records Grid for Mobile */}
         <Card className="shadow-medium">
-          <div className="p-6 space-y-4 overflow-x-auto">
+          <div className="p-6 space-y-4">
             <h2 className="text-2xl font-bold flex items-center gap-2">
               <Book className="w-6 h-6 text-primary" />
               Detailed Attendance Records
             </h2>
-            <table className="w-full text-center border min-w-[700px]">
-              <thead>
-                <tr>
-                  <th>Faculty Name</th>
-                  <th>Subject</th>
-                  <th>Period</th>
-                  <th>Present</th>
-                  <th>Absent</th>
-                  <th>On Duty</th>
-                  <th>Total</th>
-                  <th>Percentage</th>
-                </tr>
-              </thead>
-              <tbody>
-                {subjects.map((row, idx) => (
-                  <tr key={idx}>
-                    <td>{row.facultyName}</td>
-                    <td>{row.subject}</td>
-                    <td>{row.period}</td>
-                    <td>{row.present}</td>
-                    <td>{row.absent}</td>
-                    <td>{row.onduty}</td>
-                    <td>{row.total}</td>
-                    <td>{row.percentage}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {subjects.map((row, idx) => {
+                // Remove decimal from percentage string (e.g., '50.00%' -> 50)
+                // Remove decimal from percentage string (e.g., '50.00%' -> 50)
+                const percentInt = Math.round(parseFloat(row.percentage));
+                // Assume leave is counted as status === 'leave' in records, fallback to 0 if not present
+                const leave = row.leave !== undefined ? row.leave : (row.leaves !== undefined ? row.leaves : 0);
+                return (
+                  <div key={idx} className="border rounded-xl p-2 flex flex-col items-center bg-muted/50 min-h-[180px] h-auto justify-start">
+                    <div className="flex flex-col items-center w-full mt-2">
+                      <CircularProgress percentage={percentInt} size={110} strokeWidth={10} />
+                    </div>
+                    <div className="mt-1 text-center w-full">
+                      <div className="font-semibold text-primary text-base leading-tight">{row.subject}</div>
+                      <div className="text-xs text-muted-foreground">Faculty: {row.facultyName}</div>
+                    </div>
+                    <div className="grid grid-cols-3 gap-1 text-xs w-full mt-2 mb-0">
+                      <div className="bg-background rounded p-1 flex flex-col items-center">
+                        <span className="text-muted-foreground">Present</span>
+                        <b>{row.present}</b>
+                      </div>
+                      <div className="bg-background rounded p-1 flex flex-col items-center">
+                        <span className="text-muted-foreground">Absent</span>
+                        <b>{row.absent}</b>
+                      </div>
+                      <div className="bg-background rounded p-1 flex flex-col items-center">
+                        <span className="text-muted-foreground">Leave</span>
+                        <b>{leave}</b>
+                      </div>
+                      <div className="bg-background rounded p-1 flex flex-col items-center">
+                        <span className="text-muted-foreground">On Duty</span>
+                        <b>{row.onduty}</b>
+                      </div>
+                      <div className="bg-background rounded p-1 flex flex-col items-center">
+                        <span className="text-muted-foreground">Total</span>
+                        <b>{row.total}</b>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         </Card>
       </main>
