@@ -50,6 +50,8 @@ import { Button } from "@/components/ui/button";
 import { LogOut, User, Megaphone, Vote, FileBarChart, MessageSquare, IdCard } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import React, { useEffect, useState, useRef } from "react";
+import { Dialog } from "@/components/ui/dialog";
+import { X } from "lucide-react";
 // Coin spinning animation for profile photo
 const ProfilePhotoSpin = ({ profileUrl, fullName }: { profileUrl?: string; fullName?: string }) => {
   const imgRef = useRef<HTMLImageElement>(null);
@@ -131,6 +133,9 @@ const StudentDashboard = () => {
       return null;
     }
   });
+  const [showAnnouncement, setShowAnnouncement] = useState(false);
+  const [announcement, setAnnouncement] = useState<any>(null);
+  const [classMap, setClassMap] = useState<{ [id: string]: string }>({});
 
   useEffect(() => {
     // Always refresh student from Supabase on mount (by id in sessionStorage)
@@ -182,8 +187,60 @@ const StudentDashboard = () => {
     fetchClass();
   }, [student, navigate]);
 
+  useEffect(() => {
+    // Fetch all classes for mapping
+    const fetchClasses = async () => {
+      const { data } = await supabase.from("classes").select("id, class_name");
+      if (data) {
+        const map: { [id: string]: string } = {};
+        data.forEach((c: any) => { map[c.id] = c.class_name; });
+        setClassMap(map);
+      }
+    };
+    fetchClasses();
+    // Fetch announcement for popup
+    const fetchAnnouncement = async () => {
+      const { data } = await supabase
+        .from("announcements")
+        .select("*")
+        .in("target", ["students", "both"])
+        .eq("show_in_start", true)
+        .order("created_at", { ascending: false })
+        .limit(1);
+      if (data && data.length > 0) {
+        setAnnouncement(data[0]);
+        setShowAnnouncement(true);
+        // Auto-close after 5 seconds
+        setTimeout(() => setShowAnnouncement(false), 5000);
+      }
+    };
+    fetchAnnouncement();
+  }, []);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-muted/30">
+      {/* Announcement Popup */}
+      {showAnnouncement && announcement && (
+        <Dialog open={showAnnouncement} onOpenChange={setShowAnnouncement}>
+          <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/30">
+            <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md relative">
+              <button className="absolute top-2 right-2" onClick={() => setShowAnnouncement(false)}>
+                <X className="w-5 h-5 text-muted-foreground" />
+              </button>
+              <h3 className="text-lg font-bold mb-2">Announcement</h3>
+              <div className="mb-2">{announcement.message}</div>
+              {announcement.image_url && (
+                <img src={announcement.image_url} alt="Announcement" className="max-h-40 rounded mb-2" />
+              )}
+              {announcement.classes && announcement.classes.length > 0 && (
+                <div className="text-xs text-muted-foreground mt-1">
+                  Classes: {announcement.classes.map((id: string) => classMap[id] || id).join(', ')}
+                </div>
+              )}
+            </div>
+          </div>
+        </Dialog>
+      )}
       {/* Header */}
       <header className="border-b bg-card shadow-soft">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">

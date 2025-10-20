@@ -1,6 +1,6 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { LogOut, Users, GraduationCap, FileText, Settings, ClipboardList } from "lucide-react";
+import { LogOut, Users, GraduationCap, FileText, Settings, ClipboardList, Megaphone } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -61,6 +61,13 @@ const AdminDashboard = () => {
       description: "View and manage student records and attendance",
       icon: GraduationCap,
       path: "/admin/students",
+      available: true
+    },
+    {
+      title: "Announcements",
+      description: "Create and manage announcements for students and faculty",
+      icon: Megaphone,
+      path: "/admin/announcements",
       available: true
     },
     {
@@ -178,6 +185,13 @@ const AdminDashboard = () => {
                   </div>
                 </Card>
               ))}
+            </div>
+            {/* Announcements button below the grid */}
+            <div className="mt-6 flex justify-end">
+              <Button variant="default" onClick={() => navigate('/admin/announcements')}>
+                <ClipboardList className="w-4 h-4 mr-2" />
+                Announcements
+              </Button>
             </div>
           </div>
         </Card>

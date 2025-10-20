@@ -24,6 +24,7 @@ import FacultyManagement from "./pages/admin/FacultyManagement";
 import StudentManagement from "./pages/admin/StudentManagement";
 import FacultyActivities from "./pages/admin/FacultyActivities";
 import ExamManagement from "./pages/admin/ExamManagement";
+import AdminAnnouncements from "./pages/admin/AdminAnnouncements";
 import AttendanceMarking from "./pages/faculty/AttendanceMarking";
 import TimetableManagement from "./pages/faculty/TimetableManagement";
 import AdvisorAttendanceReport from "./pages/faculty/AdvisorAttendanceReport";
@@ -67,6 +68,7 @@ const App = () => (
           <Route path="/admin/students" element={<StudentManagement />} />
           <Route path="/admin/faculty-activities" element={<FacultyActivities />} />
           <Route path="/admin/exams" element={<ExamManagement />} />
+          <Route path="/admin/announcements" element={<AdminAnnouncements />} />
           <Route path="/faculty/attendance-marking" element={<AttendanceMarking />} />
           <Route path="/faculty/timetable-management" element={<TimetableManagement />} />
           <Route path="/faculty/advisor-attendance-report" element={<AdvisorAttendanceReportWrapper />} />

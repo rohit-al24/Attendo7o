@@ -52,6 +52,7 @@ const DEFAULT_SUBJECTS = [
 ];
 
 import { useState, useEffect } from "react";
+import { getSubjects, Subject } from "@/lib/subjects";
 
 // Hardcoded subject lists per class (from seed data)
 import { supabase } from "@/integrations/supabase/client";
@@ -83,6 +84,27 @@ const TimetableManagement = () => {
   const navigate = useNavigate();
   const [isEditing, setIsEditing] = useState(false);
   const [facultyList, setFacultyList] = useState<string[]>([]);
+  // Subject-to-faculty assignments: { subjectId, facultyName }
+  const [assignments, setAssignments] = useState<{ subjectId: string; faculty: string }[]>([]);
+  const [selectedSubjectId, setSelectedSubjectId] = useState<string>("");
+  const [selectedFaculty, setSelectedFaculty] = useState<string>("");
+  // Get all subjects from subjects.ts
+  const allSubjects: Subject[] = getSubjects();
+  // Assigned subjects for dropdowns
+  const assignedSubjects = assignments.map(a => {
+    const subj = allSubjects.find(s => s.id === a.subjectId);
+    return subj ? { ...subj, faculty: a.faculty } : null;
+  }).filter(Boolean) as (Subject & { faculty: string })[];
+  // Handler to assign subject to faculty (replace if exists)
+  const handleAssign = () => {
+    if (!selectedSubjectId || !selectedFaculty) return;
+    setAssignments(prev => {
+      const filtered = prev.filter(a => a.subjectId !== selectedSubjectId);
+      return [...filtered, { subjectId: selectedSubjectId, faculty: selectedFaculty }];
+    });
+    setSelectedSubjectId("");
+    setSelectedFaculty("");
+  };
   const [classList, setClassList] = useState<{ id: string; name: string }[]>([]);
   const [classId, setClassId] = useState<string>("");
   const [timetable, setTimetable] = useState<Period[]>([]);
@@ -211,6 +233,33 @@ const TimetableManagement = () => {
         </div>
       </header>
       <main className="container mx-auto px-4 py-8 space-y-6">
+        {/* Subject-to-Faculty Assignment Section: Only show in edit mode */}
+        {isEditing && (
+          <div className="mb-6 p-4 border rounded bg-muted/30">
+            <h2 className="font-semibold mb-2">Assign Subjects to Faculty</h2>
+            <div className="flex gap-2 mb-2">
+              <select value={selectedSubjectId} onChange={e => setSelectedSubjectId(e.target.value)} className="border rounded px-2 py-1">
+                <option value="">Select Subject</option>
+                {allSubjects.map(subj => (
+                  <option key={subj.id} value={subj.id}>{subj.name} ({subj.courseCode})</option>
+                ))}
+              </select>
+              <select value={selectedFaculty} onChange={e => setSelectedFaculty(e.target.value)} className="border rounded px-2 py-1">
+                <option value="">Select Faculty</option>
+                {facultyList.map(fac => (
+                  <option key={fac} value={fac}>{fac}</option>
+                ))}
+              </select>
+              <Button onClick={handleAssign}>Assign</Button>
+            </div>
+            {/* List of current assignments */}
+            <div className="flex flex-wrap gap-2">
+              {assignedSubjects.map(a => (
+                <span key={a.id} className="px-2 py-1 bg-card rounded border text-xs">{a.name} ({a.courseCode}) → {a.faculty}</span>
+              ))}
+            </div>
+          </div>
+        )}
         <div className="mb-6">
           <label className="font-semibold mr-2">Select Class:</label>
           <select value={classId} onChange={e => setClassId(e.target.value)} className="border rounded px-2 py-1">
@@ -265,29 +314,20 @@ const TimetableManagement = () => {
                               <select
                                 value={period?.subject || ""}
                                 onChange={e => {
+                                  const subjName = e.target.value;
+                                  // Find the assigned faculty for this subject
+                                  const assignment = assignedSubjects.find(s => s.name === subjName);
                                   setTimetable(tt => tt.map(t =>
-                                    t.day === day && t.period === periodNum ? { ...t, subject: e.target.value } : t
+                                    t.day === day && t.period === periodNum
+                                      ? { ...t, subject: subjName, faculty: assignment ? assignment.faculty : "" }
+                                      : t
                                   ));
                                 }}
                                 className="border rounded px-1 py-0.5 mb-1"
                               >
                                 <option value="">Select Subject</option>
-                                {(classId && SUBJECTS_BY_CLASS[classId] ? SUBJECTS_BY_CLASS[classId] : DEFAULT_SUBJECTS).map(subj => (
-                                  <option key={subj} value={subj}>{subj}</option>
-                                ))}
-                              </select>
-                              <select
-                                value={period?.faculty || ""}
-                                onChange={e => {
-                                  setTimetable(tt => tt.map(t =>
-                                    t.day === day && t.period === periodNum ? { ...t, faculty: e.target.value } : t
-                                  ));
-                                }}
-                                className="border rounded px-1 py-0.5"
-                              >
-                                <option value="">Select Faculty</option>
-                                {facultyList.map(fac => (
-                                  <option key={fac} value={fac}>{fac}</option>
+                                {assignedSubjects.map(subj => (
+                                  <option key={subj.id} value={subj.name}>{subj.name} ({subj.courseCode})</option>
                                 ))}
                               </select>
                             </div>

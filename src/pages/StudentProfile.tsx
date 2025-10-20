@@ -6,7 +6,17 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 
 const StudentProfile: React.FC = () => {
-		const [student, setStudent] = useState<any>(null);
+		type Student = {
+			class_id?: string;
+			created_at?: string;
+			full_name?: string;
+			id?: string;
+			roll_number?: string;
+			user_id?: string;
+			profile_url?: string;
+		};
+		
+		const [student, setStudent] = useState<Student | null>(null);
 		const navigate = useNavigate();
 									{previewUrl && (
 										<div className="flex justify-end pt-2">
