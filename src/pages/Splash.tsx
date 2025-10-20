@@ -10,24 +10,33 @@ const Splash = () => {
   useEffect(() => {
     let t1: any, t2: any, t3: any;
     t1 = setTimeout(() => {
-      setShowBlack(true); // start fading in black overlay at the same time as blur
+      setShowBlack(true);
       setStage('blur');
-    }, 2000); // after 2s, blur and fade bg
-    t2 = setTimeout(() => setStage('logo'), 3200); // after 3.2s, show logo (after transition)
-    t3 = setTimeout(() => navigate("/login-selection"), 5200); // after 5.2s, navigate
+    }, 3000); // after 3s, blur and fade bg
+
+    t2 = setTimeout(() => setStage('logo'), 4400); // after 4.4s, show logo
+
+    t3 = setTimeout(() => navigate("/login-selection"), 7000); // after 7s, navigate
     return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); };
   }, [navigate]);
 
   return (
     <div className="relative h-screen w-screen bg-black flex items-center justify-center overflow-hidden">
       <style>{`
+        @keyframes attendo-fade-in {
+          0% { opacity: 0; }
+          100% { opacity: 1; }
+        }
+        .attendo-fade-in {
+          animation: attendo-fade-in 1.8s cubic-bezier(.4,0,.2,1) both;
+        }
         @keyframes logo-zoom-out {
           0% { transform: scale(1); opacity: 1; }
           80% { transform: scale(2.5); opacity: 1; }
           100% { transform: scale(8); opacity: 0; }
         }
-        .logo-zoom-out {
-          animation: logo-zoom-out 1.6s cubic-bezier(.4,0,.2,1) forwards;
+            .logo-zoom-out {
+              animation: logo-zoom-out 2.6s cubic-bezier(.4,0,.2,1) forwards;
         }
         @keyframes fluid1 {
           0% { transform: translate(-30%, -10%) scale(1) rotate(0deg); }
@@ -154,10 +163,53 @@ const Splash = () => {
           100% { opacity: 0; filter: blur(16px); }
         }
         .foggy-blur {
-          animation: foggy-blur 0.6s cubic-bezier(.4,0,.2,1) forwards;
+          animation: foggy-blur 1.4s cubic-bezier(.4,0,.2,1) forwards;
         }
       `}</style>
-  <div className="fluid-bg" />
+      {/* Animated sea water effect behind Attendo text */}
+      {(stage === 'text' || stage === 'blur') && (
+        <>
+          {/* Sea water animated background */}
+          <svg className={`absolute inset-0 w-full h-full z-0 transition-opacity duration-[1400ms] pointer-events-none ${stage === 'blur' ? 'opacity-0' : 'opacity-100'}`}>
+            <defs>
+              <filter id="sea-water" x="0" y="0">
+                <feTurbulence id="turb" type="fractalNoise" baseFrequency="0.012 0.04" numOctaves="3" seed="2" result="turb"/>
+                <feDisplacementMap in2="turb" in="SourceGraphic" scale="32" xChannelSelector="R" yChannelSelector="G"/>
+                <feGaussianBlur stdDeviation="2"/>
+              </filter>
+              <linearGradient id="sea-gradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#0A0D15"/>
+                <stop offset="60%" stopColor="#222442"/>
+                <stop offset="100%" stopColor="#0A0D15"/>
+              </linearGradient>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#sea-gradient)" filter="url(#sea-water)">
+              <animate attributeName="x" values="0;20;0" dur="7s" repeatCount="indefinite"/>
+              <animate attributeName="y" values="0;10;0" dur="5s" repeatCount="indefinite"/>
+            </rect>
+          </svg>
+          {/* Animated droplets */}
+          <svg className={`absolute inset-0 w-full h-full z-0 transition-opacity duration-[1400ms] pointer-events-none ${stage === 'blur' ? 'opacity-0' : 'opacity-100'}`}>
+            <circle cx="20%" cy="30%" r="12" fill="#6ffcff55">
+              <animate attributeName="cy" values="30%;40%;30%" dur="3.2s" repeatCount="indefinite" />
+              <animate attributeName="r" values="12;18;12" dur="2.8s" repeatCount="indefinite" />
+            </circle>
+            <circle cx="60%" cy="60%" r="8" fill="#6ffcff33">
+              <animate attributeName="cx" values="60%;65%;60%" dur="2.6s" repeatCount="indefinite" />
+              <animate attributeName="r" values="8;14;8" dur="2.2s" repeatCount="indefinite" />
+            </circle>
+            <ellipse cx="80%" cy="20%" rx="7" ry="11" fill="#6ffcff22">
+              <animate attributeName="cx" values="80%;78%;80%" dur="2.9s" repeatCount="indefinite" />
+              <animate attributeName="ry" values="11;16;11" dur="2.5s" repeatCount="indefinite" />
+            </ellipse>
+            <circle cx="35%" cy="75%" r="6" fill="#6ffcff44">
+              <animate attributeName="cy" values="75%;70%;75%" dur="2.7s" repeatCount="indefinite" />
+              <animate attributeName="r" values="6;10;6" dur="2.1s" repeatCount="indefinite" />
+            </circle>
+          </svg>
+        </>
+      )}
+      <div className="fluid-bg" />
   {/* Fluid animated blobs behind text/logo */}
   <div className="fluid-blob1" />
   <div className="fluid-blob2" />
@@ -169,7 +221,7 @@ const Splash = () => {
   <div className={`fade-black${showBlack ? ' show' : ''}`} />
       <div className="relative z-10 flex flex-col items-center justify-center">
         {stage === 'text' && (
-          <span className="text-white font-semibold text-4xl text-center">Attendo</span>
+          <span className="text-white font-semibold text-4xl text-center attendo-fade-in">Attendo</span>
         )}
         {stage === 'blur' && (
           <span className="text-white font-semibold text-4xl text-center foggy-blur">Attendo</span>
