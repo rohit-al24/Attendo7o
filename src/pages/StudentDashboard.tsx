@@ -78,19 +78,43 @@ const ProfilePhotoSpin = ({ profileUrl, fullName }: { profileUrl?: string; fullN
       return () => { if (raf) window.cancelAnimationFrame(raf); };
     }, []);
 
+    // If Supabase Storage, ensure public access or signed URL
+    const getImageSrc = () => {
+      if (!profileUrl) return '';
+      // If already a public URL, use as is
+      if (profileUrl.startsWith('http')) return profileUrl;
+      // If it's a Supabase Storage path, you may need to generate a public/signed URL here
+      // For now, fallback to direct usage
+      return profileUrl;
+    };
+    const src = getImageSrc();
+    const [imgError, setImgError] = useState(false);
     return (
       <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-br from-primary to-purple-500 shadow-lg flex items-center justify-center ring-2 ring-primary/20 overflow-hidden border-2 border-white" style={spinStyle}>
-        {profileUrl ? (
+        {src && !imgError ? (
           <img
             ref={imgRef}
-            src={profileUrl}
+            src={src}
             alt="profile"
             className="w-full h-full object-cover"
-            onError={e => { e.currentTarget.onerror = null; e.currentTarget.src = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(fullName || 'Student'); }}
+            onError={e => {
+              setImgError(true);
+              e.currentTarget.onerror = null;
+              e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName || 'Student')}`;
+            }}
             style={{ aspectRatio: '1/1', background: 'white', backfaceVisibility: 'hidden' }}
           />
+        ) : imgError ? (
+          <div className="flex flex-col items-center justify-center w-full h-full bg-red-100">
+            <User className="w-8 h-8 text-red-400" />
+            <span className="text-xs text-red-400">Image failed to load</span>
+            <span className="text-[10px] text-red-400 break-all">{src}</span>
+          </div>
         ) : (
-          <User className="w-8 h-8 text-white" />
+          <div className="flex flex-col items-center justify-center w-full h-full bg-slate-100">
+            <User className="w-8 h-8 text-slate-400" />
+            <span className="text-xs text-slate-400">No Photo</span>
+          </div>
         )}
       </div>
     );
@@ -109,14 +133,35 @@ const StudentDashboard = () => {
   });
 
   useEffect(() => {
-    // Always refresh student from sessionStorage on mount
-    try {
-      const str = sessionStorage.getItem("student");
-      setStudent(str ? JSON.parse(str) : null);
-    } catch {
-      setStudent(null);
-    }
-  }, []);
+    // Always refresh student from Supabase on mount (by id in sessionStorage)
+    const fetchStudent = async () => {
+      try {
+        // If navigation brought a student, persist it
+        const navStudent: any = (location.state as any)?.student;
+        if (navStudent) {
+          try { sessionStorage.setItem('student', JSON.stringify(navStudent)); } catch {}
+          setStudent(navStudent);
+          return;
+        }
+        const str = sessionStorage.getItem("student");
+        const localStudent = str ? JSON.parse(str) : null;
+        if (localStudent?.id) {
+          const { data, error } = await supabase.from('students').select('*').eq('id', localStudent.id).single();
+          if (data) {
+            setStudent(data);
+            sessionStorage.setItem('student', JSON.stringify(data));
+          } else {
+            setStudent(localStudent); // fallback
+          }
+        } else {
+          setStudent(localStudent);
+        }
+      } catch {
+        setStudent(null);
+      }
+    };
+    fetchStudent();
+  }, [location.state]);
   const [classInfo, setClassInfo] = useState<any>(null);
 
   // No auth gating for students; rely on in-app login and sessionStorage
@@ -153,7 +198,7 @@ const StudentDashboard = () => {
           </div>
           <Button 
             variant="ghost" 
-            onClick={() => navigate("/login-selection")}
+            onClick={() => { try { sessionStorage.removeItem('student'); } catch {}; navigate("/login-selection"); }}
           >
             <LogOut className="w-4 h-4 mr-2" />
             Logout

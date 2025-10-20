@@ -37,7 +37,10 @@ const StudentLogin = () => {
       setLoading(false);
       return;
     }
-    // Successful login, route to dashboard
+    // Successful login: persist session and route to dashboard
+    try {
+      sessionStorage.setItem('student', JSON.stringify(data));
+    } catch {}
     navigate('/student-dashboard', { state: { student: data } });
     setLoading(false);
   };
