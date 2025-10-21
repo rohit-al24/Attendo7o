@@ -1,6 +1,7 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { LogOut, Calendar, ClipboardList, BookOpen } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { useNavigate } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useEffect, useState } from "react";
@@ -18,6 +19,7 @@ const FacultyDashboard = () => {
 
   const [facultyData, setFacultyData] = useState<any>(null);
   const [todayClasses, setTodayClasses] = useState<any[]>([]);
+  const [attendanceDialog, setAttendanceDialog] = useState<{ open: boolean; periods: number[]; className: string; subject: string } | null>(null);
 
   useEffect(() => {
     supabase.auth.getSession().then(async ({ data }) => {
@@ -77,7 +79,20 @@ const FacultyDashboard = () => {
         .eq("faculty_id", facultyId)
         .eq("day_of_week", dayOfWeek)
         .order("period_number", { ascending: true });
-      // Get class names for each class_id
+      // Find continuous blocks
+      const periods = (timetable || []).map((item: any) => item.period_number);
+      const blocks: number[][] = [];
+      let currentBlock: number[] = [];
+      for (let i = 0; i < periods.length; i++) {
+        if (currentBlock.length === 0 || periods[i] === currentBlock[currentBlock.length - 1] + 1) {
+          currentBlock.push(periods[i]);
+        } else {
+          blocks.push(currentBlock);
+          currentBlock = [periods[i]];
+        }
+      }
+      if (currentBlock.length) blocks.push(currentBlock);
+      // Attach block info to each class item
       const classesWithNames = await Promise.all(
         (timetable || []).map(async (item: any) => {
           let className = "";
@@ -89,11 +104,14 @@ const FacultyDashboard = () => {
               .single();
             className = classData?.class_name || "";
           }
+          // Find block for this period
+          const block = blocks.find(b => b.includes(item.period_number) && b.length > 1);
           return {
             period: item.period_number,
             time: "", // Optionally format time from item.time
             class: className,
-            subject: item.subject
+            subject: item.subject,
+            block: block || null
           };
         })
       );
@@ -155,7 +173,19 @@ const FacultyDashboard = () => {
                         </div>
                         <Button 
                           className="gradient-primary"
-                          onClick={() => navigate("/faculty/attendance-marking")}
+                          onClick={() => {
+                            if (classItem.block && classItem.block[0] === classItem.period) {
+                              setAttendanceDialog({
+                                open: true,
+                                periods: classItem.block,
+                                className: classItem.class,
+                                subject: classItem.subject
+                              });
+                            } else {
+                              // Single period, go directly
+                              navigate("/faculty/attendance-marking");
+                            }
+                          }}
                         >
                           <ClipboardList className="w-4 h-4 mr-2" />
                           Take Attendance
@@ -164,6 +194,34 @@ const FacultyDashboard = () => {
                     </Card>
                   ))}
                 </div>
+      {/* Attendance dialog for continuous blocks */}
+      {attendanceDialog?.open && (
+        <Dialog open={attendanceDialog.open} onOpenChange={open => setAttendanceDialog(open ? attendanceDialog : null)}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Continuous Periods Detected</DialogTitle>
+            </DialogHeader>
+            <div className="py-2">
+              <p>
+                You have <b>{attendanceDialog.periods.length}</b> continuous periods for <b>{attendanceDialog.className}</b> ({attendanceDialog.subject}):<br />
+                Periods: {attendanceDialog.periods.join(", ")}
+              </p>
+              <p className="mt-2">Do you want to mark attendance for all these periods at once?</p>
+            </div>
+            <DialogFooter>
+              <Button className="gradient-primary" onClick={() => {
+                // TODO: Mark attendance for all periods
+                setAttendanceDialog(null);
+                navigate("/faculty/attendance-marking?periods=" + attendanceDialog.periods.join(","));
+              }}>Yes, mark for all</Button>
+              <Button variant="outline" onClick={() => {
+                setAttendanceDialog(null);
+                navigate("/faculty/attendance-marking?periods=" + attendanceDialog.periods[0]);
+              }}>No, only this period</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
               </div>
             </Card>
           </TabsContent>

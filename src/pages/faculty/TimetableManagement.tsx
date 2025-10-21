@@ -1,3 +1,20 @@
+// Helper: Find continuous periods for a faculty on a given day
+function getContinuousPeriods(timetable: Period[], day: string, faculty: string) {
+  const periodsForDay = timetable.filter(t => t.day === day && t.faculty === faculty);
+  const sortedPeriods = periodsForDay.map(t => t.period).sort((a, b) => a - b);
+  const blocks: number[][] = [];
+  let currentBlock: number[] = [];
+  for (let i = 0; i < sortedPeriods.length; i++) {
+    if (currentBlock.length === 0 || sortedPeriods[i] === currentBlock[currentBlock.length - 1] + 1) {
+      currentBlock.push(sortedPeriods[i]);
+    } else {
+      blocks.push(currentBlock);
+      currentBlock = [sortedPeriods[i]];
+    }
+  }
+  if (currentBlock.length) blocks.push(currentBlock);
+  return blocks.filter(b => b.length > 1); // Only return blocks of 2 or more
+}
 
 // Hardcoded subject lists per class (from seed data)
 const SUBJECTS_BY_CLASS: Record<string, string[]> = {
@@ -81,6 +98,13 @@ const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"
 const periods = [1, 2, 3, 4, 5, 6, 7];
 
 const TimetableManagement = () => {
+  // Handler: Mark attendance for continuous periods
+  function handleMarkAttendance(day: string, startPeriod: number, faculty: string, count: number) {
+    // TODO: Implement attendance logic here
+    // Should mark attendance for all students for 'count' periods
+    // Example: send attendance for periods startPeriod to startPeriod+count-1 for the given day and faculty
+    alert(`Attendance marked for ${faculty} on ${day}, periods ${startPeriod} to ${startPeriod + count - 1} (count=${count})`);
+  }
   const navigate = useNavigate();
   const [isEditing, setIsEditing] = useState(false);
   const [facultyList, setFacultyList] = useState<string[]>([]);
@@ -225,6 +249,14 @@ const TimetableManagement = () => {
     setLoading(false);
   };
 
+  // Handler: Mark attendance for continuous periods
+  function handleMarkAttendance(day: string, startPeriod: number, faculty: string, count: number) {
+    // TODO: Implement attendance logic here
+    // Should mark attendance for all students for 'count' periods
+    // Example: send attendance for periods startPeriod to startPeriod+count-1 for the given day and faculty
+    alert(`Attendance marked for ${faculty} on ${day}, periods ${startPeriod} to ${startPeriod + count - 1} (count=${count})`);
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-muted/30">
       <header className="border-b bg-card shadow-soft">
@@ -302,46 +334,77 @@ const TimetableManagement = () => {
                 </tr>
               </thead>
               <tbody>
-                {days.map((day, dayIdx) => (
-                  <tr key={day} className="border-b">
-                    <td className="font-semibold px-2 py-1">{day} <span className="text-xs text-muted-foreground">({dayIdx + 1})</span></td>
-                    {periods.map(periodNum => {
-                      const period = getPeriodData(day, periodNum);
-                      return (
-                        <td key={periodNum} className="px-2 py-1">
-                          {isEditing ? (
-                            <div className="flex flex-col gap-1">
-                              <select
-                                value={period?.subject || ""}
-                                onChange={e => {
-                                  const subjName = e.target.value;
-                                  // Find the assigned faculty for this subject
-                                  const assignment = assignedSubjects.find(s => s.name === subjName);
-                                  setTimetable(tt => tt.map(t =>
-                                    t.day === day && t.period === periodNum
-                                      ? { ...t, subject: subjName, faculty: assignment ? assignment.faculty : "" }
-                                      : t
-                                  ));
-                                }}
-                                className="border rounded px-1 py-0.5 mb-1"
-                              >
-                                <option value="">Select Subject</option>
-                                {assignedSubjects.map(subj => (
-                                  <option key={subj.id} value={subj.name}>{subj.name} ({subj.courseCode})</option>
-                                ))}
-                              </select>
-                            </div>
-                          ) : (
-                            <div>
-                              <div className="font-medium">{period?.subject || <span className="text-muted-foreground">Free</span>}</div>
-                              <div className="text-xs text-muted-foreground">{period?.faculty || ""}</div>
-                            </div>
-                          )}
-                        </td>
-                      );
-                    })}
-                  </tr>
-                ))}
+                {days.map((day, dayIdx) => {
+                  // Find continuous blocks for each faculty for this day
+                  const facultyBlocks: Record<string, number[][]> = {};
+                  facultyList.forEach(faculty => {
+                    facultyBlocks[faculty] = getContinuousPeriods(timetable, day, faculty);
+                  });
+                  return (
+                    <tr key={day} className="border-b">
+                      <td className="font-semibold px-2 py-1">{day} <span className="text-xs text-muted-foreground">({dayIdx + 1})</span></td>
+                      {periods.map(periodNum => {
+                        const period = getPeriodData(day, periodNum);
+                        // Check if this period is the start of a continuous block for its faculty
+                        let blockLength = 1;
+                        let showAttendanceButton = false;
+                        if (period?.faculty) {
+                          const blocks = facultyBlocks[period.faculty] || [];
+                          for (const block of blocks) {
+                            if (block[0] === periodNum) {
+                              blockLength = block.length;
+                              showAttendanceButton = true;
+                              break;
+                            }
+                          }
+                        }
+                        // Highlight if this period is part of a continuous block for its faculty
+                        let highlightClass = "";
+                        if (period?.faculty) {
+                          const blocks = facultyBlocks[period.faculty] || [];
+                          for (const block of blocks) {
+                            if (block.includes(periodNum)) {
+                              highlightClass = "bg-yellow-100/60"; // Use a soft yellow highlight
+                              break;
+                            }
+                          }
+                        }
+                        return (
+                          <td key={periodNum} className={`px-2 py-1 ${highlightClass}`}>
+                            {isEditing ? (
+                              <div className="flex flex-col gap-1">
+                                <select
+                                  value={period?.subject || ""}
+                                  onChange={e => {
+                                    const subjName = e.target.value;
+                                    // Find the assigned faculty for this subject
+                                    const assignment = assignedSubjects.find(s => s.name === subjName);
+                                    setTimetable(tt => tt.map(t =>
+                                      t.day === day && t.period === periodNum
+                                        ? { ...t, subject: subjName, faculty: assignment ? assignment.faculty : "" }
+                                        : t
+                                    ));
+                                  }}
+                                  className="border rounded px-1 py-0.5 mb-1"
+                                >
+                                  <option value="">Select Subject</option>
+                                  {assignedSubjects.map(subj => (
+                                    <option key={subj.id} value={subj.name}>{subj.name} ({subj.courseCode})</option>
+                                  ))}
+                                </select>
+                              </div>
+                            ) : (
+                              <div>
+                                <div className="font-medium">{period?.subject || <span className="text-muted-foreground">Free</span>}</div>
+                                <div className="text-xs text-muted-foreground">{period?.faculty || ""}</div>
+                              </div>
+                            )}
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
