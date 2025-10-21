@@ -12,6 +12,10 @@ let subjects: Subject[] = [
   { id: 'math', name: 'Mathematics', courseCode: 'MATH101' },
   { id: 'phy', name: 'Physics', courseCode: 'PHY101' },
   { id: 'chem', name: 'Chemistry', courseCode: 'CHEM101' },
+  { id: 'tamil', name: 'Tamil', courseCode: 'TAMIL101' },
+  { id: 'english', name: 'English', courseCode: 'ENG101' },
+  { id: 'cprog', name: 'C Programming', courseCode: 'CS101' },
+  { id: 'const', name: 'Indian Constitution', courseCode: 'POL101' },
   // Add more subjects here
 ];
 
