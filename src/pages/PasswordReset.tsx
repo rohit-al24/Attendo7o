@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import MobileHeader from "@/components/MobileHeader";
 
 const PasswordReset = () => {
   const navigate = useNavigate();
@@ -31,7 +32,7 @@ const PasswordReset = () => {
       return;
     }
     setLoading(true);
-    const { error } = await supabase.auth.updateUser({ password }, { accessToken: token });
+  const { error } = await (supabase.auth as any).updateUser({ password }, { accessToken: token });
     setLoading(false);
     if (error) {
       toast.error(error.message);
@@ -42,8 +43,10 @@ const PasswordReset = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted/30 p-4">
-      <Card className="w-full max-w-md shadow-large animate-in fade-in slide-in-from-bottom duration-500 p-8">
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-background to-muted/30">
+      <MobileHeader title="Reset Password" />
+      <div className="flex-1 flex items-center justify-center p-4">
+        <Card className="w-full max-w-md shadow-large animate-in fade-in slide-in-from-bottom duration-500 p-8">
         <h2 className="text-2xl font-bold mb-4">Reset Password</h2>
         <form onSubmit={handleReset} className="space-y-4">
           <div className="space-y-2">
@@ -72,7 +75,8 @@ const PasswordReset = () => {
             {loading ? "Resetting..." : "Reset Password"}
           </Button>
         </form>
-      </Card>
+        </Card>
+      </div>
     </div>
   );
 };

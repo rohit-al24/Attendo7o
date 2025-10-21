@@ -4,8 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft, UserPlus, Edit, Trash2, Calendar, FileText } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { UserPlus, Edit, Trash2, Calendar, FileText } from "lucide-react";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -23,6 +22,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import MobileHeader from "@/components/MobileHeader";
 
 interface Faculty {
   id: string;
@@ -34,7 +34,6 @@ interface Faculty {
 }
 
 const FacultyManagement = () => {
-  const navigate = useNavigate();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [newFaculty, setNewFaculty] = useState({ name: "", email: "", department: "", password: "" });
   // Faculty data from DB
@@ -233,14 +232,7 @@ const handleCreateFaculty = async () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-muted/30">
-      <header className="border-b bg-card shadow-soft">
-        <div className="container mx-auto px-4 py-4">
-          <Button variant="ghost" onClick={() => navigate("/admin-dashboard")}>
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Dashboard
-          </Button>
-        </div>
-      </header>
+      <MobileHeader title="Faculty Management" />
 
       <main className="container mx-auto px-4 py-8 space-y-6">
         <div className="flex items-center justify-between">

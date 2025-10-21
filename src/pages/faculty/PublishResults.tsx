@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useNavigate } from "react-router-dom";
+import MobileHeader from "@/components/MobileHeader";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -154,8 +155,9 @@ const PublishResults = () => {
 		setSaving(false);
 	};
 
-	return (
-		<div className="min-h-screen bg-gradient-to-br from-background to-muted/30">
+		return (
+			<div className="min-h-screen bg-gradient-to-br from-background to-muted/30">
+				<MobileHeader title="Publish Results" />
 			<header className="border-b bg-card shadow-soft">
 				<div className="container mx-auto px-4 py-4 flex items-center justify-between">
 					<div className="font-bold">Publish Results</div>

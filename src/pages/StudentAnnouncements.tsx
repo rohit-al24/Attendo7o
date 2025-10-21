@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
+import MobileHeader from "@/components/MobileHeader";
+import StudentTabBar from "@/components/StudentTabBar";
 
 const StudentAnnouncements = () => {
   const [announcements, setAnnouncements] = useState<any[]>([]);
@@ -10,7 +12,7 @@ const StudentAnnouncements = () => {
     const fetchAnnouncements = async () => {
       setLoading(true);
       // Only fetch announcements for students or both
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("announcements")
         .select("*")
         .in("target", ["students", "both"])
@@ -23,7 +25,8 @@ const StudentAnnouncements = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-muted/30">
-      <main className="container mx-auto px-4 py-8 space-y-6">
+      <MobileHeader title="Announcements" />
+  <main className="container mx-auto px-4 py-8 space-y-6 pb-20">
         <h1 className="text-2xl font-bold mb-6">Announcements</h1>
         {loading ? (
           <div>Loading...</div>
@@ -49,6 +52,7 @@ const StudentAnnouncements = () => {
           </ul>
         )}
       </main>
+      <StudentTabBar />
     </div>
   );
 };

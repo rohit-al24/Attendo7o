@@ -2,6 +2,8 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { LogOut, User, Book } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
+import MobileHeader from "@/components/MobileHeader";
+import StudentTabBar from "@/components/StudentTabBar";
 import CircularProgress from "@/components/CircularProgress";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -91,7 +93,7 @@ const StudentAttendance = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-muted/30">
-      {/* Header */}
+      <MobileHeader title="Attendance" />
       <header className="border-b bg-card shadow-soft">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -113,7 +115,7 @@ const StudentAttendance = () => {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8 space-y-6">
+  <main className="container mx-auto px-4 py-8 space-y-6 pb-20">
         {/* Student Info Card */}
         <Card className="shadow-medium">
           <div className="p-6 space-y-4">
@@ -204,6 +206,7 @@ const StudentAttendance = () => {
           </div>
         </Card>
       </main>
+      <StudentTabBar />
     </div>
   );
 };

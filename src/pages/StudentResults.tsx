@@ -4,6 +4,8 @@ import { LogOut, School, Download } from "lucide-react";
 import { generateReportCardPDF } from "@/utils/reportCardGenerator";
 import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import MobileHeader from "@/components/MobileHeader";
+import StudentTabBar from "@/components/StudentTabBar";
 import { supabase } from "@/integrations/supabase/client";
 
 interface Exam { id: string; name: string; }
@@ -86,33 +88,34 @@ const StudentResults = () => {
 			});
 	};
 
-	return (
-		<div className="min-h-screen bg-gradient-to-br from-background to-muted/30">
-			<header className="border-b bg-card shadow-soft">
-				<div className="container mx-auto px-4 py-4 flex items-center justify-between">
-					<div className="flex items-center gap-3">
-						<div className="w-10 h-10 gradient-primary rounded-lg flex items-center justify-center">
-							<School className="w-6 h-6 text-white" />
+			return (
+				<div className="min-h-screen bg-gradient-to-br from-background to-muted/30">
+					<MobileHeader title="Results" />
+				<header className="border-b bg-card shadow-soft">
+					<div className="container mx-auto px-4 py-4 flex items-center justify-between">
+						<div className="flex items-center gap-3">
+							<div className="w-10 h-10 gradient-primary rounded-lg flex items-center justify-center">
+								<School className="w-6 h-6 text-white" />
+							</div>
+							<div>
+								<h1 className="text-xl font-bold">Results</h1>
+								<p className="text-sm text-muted-foreground">{student?.full_name}</p>
+							</div>
 						</div>
-						<div>
-							<h1 className="text-xl font-bold">Results</h1>
-							<p className="text-sm text-muted-foreground">{student?.full_name}</p>
+						<div className="flex items-center gap-2">
+							<Button variant="default" onClick={handleDownloadReport}>
+								<Download className="w-4 h-4 mr-2" />
+								Download Report Card
+							</Button>
+							<Button variant="ghost" onClick={() => { try { sessionStorage.removeItem('student'); } catch {}; navigate("/login-selection"); }}>
+								<LogOut className="w-4 h-4 mr-2" />
+								Logout
+							</Button>
 						</div>
 					</div>
-					<div className="flex items-center gap-2">
-						<Button variant="default" onClick={handleDownloadReport}>
-							<Download className="w-4 h-4 mr-2" />
-							Download Report Card
-						</Button>
-						<Button variant="ghost" onClick={() => { try { sessionStorage.removeItem('student'); } catch {}; navigate("/login-selection"); }}>
-							<LogOut className="w-4 h-4 mr-2" />
-							Logout
-						</Button>
-					</div>
-				</div>
-			</header>
+				</header>
 
-			<main className="container mx-auto px-4 py-8 space-y-6">
+			<main className="container mx-auto px-4 py-8 space-y-6 pb-20">
 				<Card className="p-4 shadow-medium">
 					<h2 className="text-lg font-semibold mb-3">Available Exams</h2>
 					<div className="flex gap-2 flex-wrap">
@@ -122,7 +125,8 @@ const StudentResults = () => {
 							</Button>
 						))}
 						{exams.length === 0 && <div className="text-sm text-muted-foreground">No exams yet.</div>}
-					</div>
+							<StudentTabBar />
+						</div>
 				</Card>
 
 				{selectedExam && (

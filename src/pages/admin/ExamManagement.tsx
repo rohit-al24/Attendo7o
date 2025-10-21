@@ -4,13 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft, PlusCircle } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { PlusCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import MobileHeader from "@/components/MobileHeader";
 
 const ExamManagement = () => {
-  const navigate = useNavigate();
   const [name, setName] = useState("");
   const [classes, setClasses] = useState<any[]>([]);
   const [selected, setSelected] = useState<Record<string, boolean>>({});
@@ -45,15 +44,7 @@ const ExamManagement = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-muted/30">
-      <header className="border-b bg-card shadow-soft">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <Button variant="ghost" onClick={() => navigate('/admin-dashboard')}>
-            <ArrowLeft className="w-4 h-4 mr-2" /> Back
-          </Button>
-          <div className="font-bold">Exam Management</div>
-          <div />
-        </div>
-      </header>
+      <MobileHeader title="Exam Management" />
 
       <main className="container mx-auto px-4 py-6 space-y-6">
         <Card className="p-6 shadow-medium">

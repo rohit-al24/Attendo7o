@@ -1,4 +1,5 @@
 import React from "react";
+import MobileHeader from "@/components/MobileHeader";
 import { useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -32,6 +33,7 @@ const LoginSelection = () => {
 
   return (
     <div className="min-h-screen w-full flex flex-col items-center justify-center bg-gradient-to-b from-[#181c2a] via-[#23284a] to-[#0a0d15] px-4 py-8">
+      <MobileHeader title="Login" />
       {/* Logos at top */}
       <div className="flex flex-col items-center mb-10 mt-2">
   <div className="flex flex-row items-center justify-center gap-10 mb-6 pt-2">

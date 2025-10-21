@@ -1,16 +1,15 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Trash2 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
+import MobileHeader from "@/components/MobileHeader";
 
 const AdminAnnouncements = () => {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imageUrl, setImageUrl] = useState("");
-  const navigate = useNavigate();
   const [showModal, setShowModal] = useState(false);
   const [target, setTarget] = useState('students');
   const [selectedClasses, setSelectedClasses] = useState<string[]>([]);
@@ -37,14 +36,7 @@ const AdminAnnouncements = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-muted/30">
-      <header className="border-b bg-card shadow-soft">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <h1 className="text-xl font-bold">Announcements</h1>
-          <Button variant="ghost" onClick={() => navigate(-1)}>
-            Back
-          </Button>
-        </div>
-      </header>
+      <MobileHeader title="Announcements" />
       <main className="container mx-auto px-4 py-8 space-y-6">
         <Card className="shadow-medium p-6">
           <div className="flex items-center justify-between mb-4">

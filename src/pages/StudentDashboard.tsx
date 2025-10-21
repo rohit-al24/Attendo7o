@@ -50,6 +50,8 @@ import { Button } from "@/components/ui/button";
 import { LogOut, User, Megaphone, Vote, FileBarChart, MessageSquare, IdCard } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import React, { useEffect, useState, useRef } from "react";
+import MobileHeader from "@/components/MobileHeader";
+import StudentTabBar from "@/components/StudentTabBar";
 import { Dialog } from "@/components/ui/dialog";
 import { X } from "lucide-react";
 // Coin spinning animation for profile photo
@@ -200,7 +202,7 @@ const StudentDashboard = () => {
     fetchClasses();
     // Fetch announcement for popup
     const fetchAnnouncement = async () => {
-      const { data } = await supabase
+      const { data } = await (supabase as any)
         .from("announcements")
         .select("*")
         .in("target", ["students", "both"])
@@ -219,6 +221,8 @@ const StudentDashboard = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-muted/30">
+      <MobileHeader title="Student Portal" />
+      {/* ...existing code... */}
       {/* Announcement Popup */}
       {showAnnouncement && announcement && (
         <Dialog open={showAnnouncement} onOpenChange={setShowAnnouncement}>
@@ -263,7 +267,7 @@ const StudentDashboard = () => {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-6 space-y-4">
+  <main className="container mx-auto px-4 py-6 space-y-4 pb-20">
         {/* Top: Info left, profile right */}
         <Card className="shadow-medium p-4 sm:p-6">
           <div className="flex items-center justify-between gap-4">
@@ -308,6 +312,7 @@ const StudentDashboard = () => {
           </Button>
         </div>
       </main>
+      <StudentTabBar />
     </div>
   );
 };

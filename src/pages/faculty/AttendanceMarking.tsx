@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import MobileHeader from "@/components/MobileHeader";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -30,6 +31,7 @@ const AttendanceMarking = () => {
   const [classInfo, setClassInfo] = useState<any>(null);
   const [classList, setClassList] = useState<any[]>([]);
   const [students, setStudents] = useState<Student[]>([]);
+  const [popupStudentId, setPopupStudentId] = useState<string | null>(null);
 
   // Fetch all classes for selector
   useEffect(() => {
@@ -69,9 +71,8 @@ const AttendanceMarking = () => {
   }, [classId]);
 
   const updateStudentStatus = (id: string, status: "present" | "absent" | "leave" | "onduty") => {
-    setStudents(students.map(s => 
-      s.id === id ? { ...s, status } : s
-    ));
+    setStudents(students.map(s => s.id === id ? { ...s, status } : s));
+    setPopupStudentId(null); // Close modal after selection
   };
 
   const handleSaveAttendance = async () => {
@@ -124,6 +125,7 @@ const AttendanceMarking = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-muted/30">
+      <MobileHeader title="Attendance Marking" />
       <header className="border-b bg-card shadow-soft">
         <div className="container mx-auto px-4 py-4">
           <Button variant="ghost" onClick={() => navigate("/faculty-dashboard")}>
@@ -211,40 +213,31 @@ const AttendanceMarking = () => {
                         <p className="font-semibold">{student.full_name}</p>
                         <p className="text-sm text-muted-foreground">{student.roll_number}</p>
                       </div>
-                      <RadioGroup
-                        value={student.status}
-                        onValueChange={(value: "present" | "absent" | "leave" | "onduty") => 
-                          updateStudentStatus(student.id, value)
-                        }
-                        className="flex gap-6"
-                      >
-                        <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="present" id={`${student.id}-present`} />
-                          <Label htmlFor={`${student.id}-present`} className="text-secondary font-medium cursor-pointer">
-                            Present
-                          </Label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="absent" id={`${student.id}-absent`} />
-                          <Label htmlFor={`${student.id}-absent`} className="text-destructive font-medium cursor-pointer">
-                            Absent
-                          </Label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="leave" id={`${student.id}-leave`} />
-                          <Label htmlFor={`${student.id}-leave`} className="text-accent font-medium cursor-pointer">
-                            Leave
-                          </Label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="onduty" id={`${student.id}-onduty`} />
-                          <Label htmlFor={`${student.id}-onduty`} className="text-primary font-medium cursor-pointer">
-                            On Duty
-                          </Label>
-                        </div>
-                      </RadioGroup>
+                      <div>
+                        <Button
+                          className={`font-bold px-4 py-2 rounded shadow ${student.status === 'present' ? 'bg-green-500 text-white' : student.status === 'absent' ? 'bg-red-500 text-white' : student.status === 'leave' ? 'bg-yellow-500 text-white' : student.status === 'onduty' ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'}`}
+                          onClick={() => setPopupStudentId(student.id)}
+                        >
+                          {student.status.charAt(0).toUpperCase() + student.status.slice(1)}
+                        </Button>
+                      </div>
                     </div>
                   </div>
+                  {/* Mobile-friendly bottom sheet modal for status selection */}
+                  {popupStudentId === student.id && (
+                    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black bg-opacity-60">
+                      <div className="w-full max-w-md mx-auto bg-white rounded-t-2xl shadow-lg p-6 animate-slide-up" style={{ minHeight: '50vh' }}>
+                        <h3 className="text-xl font-bold mb-6 text-center">Select Attendance Status</h3>
+                        <div className="grid grid-cols-1 gap-4 mb-6">
+                          <Button className="bg-green-500 hover:bg-green-600 text-white text-lg py-4 rounded-lg" onClick={() => updateStudentStatus(student.id, "present")}>Present</Button>
+                          <Button className="bg-red-500 hover:bg-red-600 text-white text-lg py-4 rounded-lg" onClick={() => updateStudentStatus(student.id, "absent")}>Absent</Button>
+                          <Button className="bg-yellow-500 hover:bg-yellow-600 text-white text-lg py-4 rounded-lg" onClick={() => updateStudentStatus(student.id, "leave")}>Leave</Button>
+                          <Button className="bg-blue-500 hover:bg-blue-600 text-white text-lg py-4 rounded-lg" onClick={() => updateStudentStatus(student.id, "onduty")}>On Duty</Button>
+                        </div>
+                        <Button variant="outline" className="w-full py-3 rounded-lg text-lg" onClick={() => setPopupStudentId(null)}>Cancel</Button>
+                      </div>
+                    </div>
+                  )}
                 </Card>
               ))}
             </div>

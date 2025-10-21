@@ -1,3 +1,4 @@
+import MobileHeader from "@/components/MobileHeader";
 // Helper: Find continuous periods for a faculty on a given day
 function getContinuousPeriods(timetable: Period[], day: string, faculty: string) {
   const periodsForDay = timetable.filter(t => t.day === day && t.faculty === faculty);
@@ -98,13 +99,6 @@ const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"
 const periods = [1, 2, 3, 4, 5, 6, 7];
 
 const TimetableManagement = () => {
-  // Handler: Mark attendance for continuous periods
-  function handleMarkAttendance(day: string, startPeriod: number, faculty: string, count: number) {
-    // TODO: Implement attendance logic here
-    // Should mark attendance for all students for 'count' periods
-    // Example: send attendance for periods startPeriod to startPeriod+count-1 for the given day and faculty
-    alert(`Attendance marked for ${faculty} on ${day}, periods ${startPeriod} to ${startPeriod + count - 1} (count=${count})`);
-  }
   const navigate = useNavigate();
   const [isEditing, setIsEditing] = useState(false);
   const [facultyList, setFacultyList] = useState<string[]>([]);
@@ -259,6 +253,7 @@ const TimetableManagement = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-muted/30">
+      <MobileHeader title="Timetable" />
       <header className="border-b bg-card shadow-soft">
         <div className="container mx-auto px-4 py-4">
           <Button variant="ghost" onClick={() => navigate("/faculty-dashboard")}> <ArrowLeft className="w-4 h-4 mr-2" /> Back to Dashboard </Button>
