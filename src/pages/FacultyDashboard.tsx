@@ -238,7 +238,8 @@ const FacultyDashboard = () => {
                   <Button 
                     size="lg" 
                     className="h-24 flex flex-col gap-2"
-                    onClick={() => navigate("/faculty/timetable-management")}
+                    onClick={() => facultyData?.advisorClassId && navigate("/faculty/timetable-management", { state: { classId: facultyData.advisorClassId } })}
+                    disabled={!facultyData?.advisorClassId}
                   >
                     <Calendar className="w-6 h-6" />
                     <span>Manage Timetable</span>

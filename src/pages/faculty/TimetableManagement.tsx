@@ -78,7 +78,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ArrowLeft, Save, Edit } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import {
   Select,
   SelectContent,
@@ -123,26 +123,28 @@ const TimetableManagement = () => {
     setSelectedSubjectId("");
     setSelectedFaculty("");
   };
-  const [classList, setClassList] = useState<{ id: string; name: string }[]>([]);
-  const [classId, setClassId] = useState<string>("");
+  const location = useLocation();
+  const [classId, setClassId] = useState<string>(location.state?.classId || "");
+  const [className, setClassName] = useState<string>("");
   const [timetable, setTimetable] = useState<Period[]>([]);
   const [loading, setLoading] = useState(false);
 
-  // Fetch all classes and set default class
+  // Ensure classId provided via navigation; fetch class name
   useEffect(() => {
     (async () => {
-      setLoading(true);
-      const { data: classes, error: classError } = await supabase
-        .from("classes")
-        .select("id,class_name");
-      if (classError) toast.error("Error loading classes");
-      if (classes && classes.length > 0) {
-        setClassList(classes.map((c: any) => ({ id: c.id, name: c.class_name })));
-        setClassId(classes[0].id);
+      if (!classId) {
+        toast.error("No class selected. Open Manage Timetable from Advisor tab.");
+        navigate("/faculty-dashboard");
+        return;
       }
-      setLoading(false);
+      const { data, error } = await supabase
+        .from("classes")
+        .select("class_name")
+        .eq("id", classId)
+        .single();
+      if (!error && data) setClassName(data.class_name);
     })();
-  }, []);
+  }, [classId, navigate]);
 
   // Fetch faculty list
   useEffect(() => {
@@ -287,18 +289,11 @@ const TimetableManagement = () => {
             </div>
           </div>
         )}
-        <div className="mb-6">
-          <label className="font-semibold mr-2">Select Class:</label>
-          <select value={classId} onChange={e => setClassId(e.target.value)} className="border rounded px-2 py-1">
-            {classList.map(cls => (
-              <option key={cls.id} value={cls.id}>{cls.name}</option>
-            ))}
-          </select>
-        </div>
+        {/* Class selector removed: advisor-selected class is used */}
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold">Timetable Management</h1>
-            <p className="text-muted-foreground">Managing: {classList.find(c => c.id === classId)?.name || ""}</p>
+            <p className="text-muted-foreground">Managing: {className}</p>
           </div>
           <div className="flex gap-2">
             {!isEditing ? (

@@ -29,26 +29,26 @@ const AttendanceMarking = () => {
   const time = location.state?.time || '';
 
   const [classInfo, setClassInfo] = useState<any>(null);
-  const [classList, setClassList] = useState<any[]>([]);
   const [students, setStudents] = useState<Student[]>([]);
   const [popupStudentId, setPopupStudentId] = useState<string | null>(null);
 
-  // Fetch all classes for selector
-  useEffect(() => {
-    const fetchClasses = async () => {
-      const { data } = await supabase
-        .from('classes')
-        .select('id, class_name, department, section, year');
-      setClassList(data || []);
-    };
-    fetchClasses();
-  }, []);
+  // Support continuous periods passed via query param `periods=1,2,3`
+  const searchParams = new URLSearchParams(location.search || "");
+  const periodsParam = searchParams.get('periods');
+  const selectedPeriods: number[] = periodsParam
+    ? periodsParam.split(',').map(p => parseInt(p, 10)).filter(n => !Number.isNaN(n))
+    : [period];
+
+  // No class selector: class is provided by Faculty Dashboard via router state
 
   // Fetch class info and students for selected class
   useEffect(() => {
     if (!classId) {
       setClassInfo(null);
       setStudents([]);
+      // If no classId provided, redirect back with a message
+      toast.error('No class selected. Please pick a class from your dashboard.');
+      navigate('/faculty-dashboard');
       return;
     }
     const fetchClass = async () => {
@@ -90,17 +90,21 @@ const AttendanceMarking = () => {
       toast.error('Faculty ID or user_id not found. Please re-login.');
       return;
     }
-    const records = students.map(s => ({
-      student_id: s.id,
-      status: s.status,
-      class_id: classId,
-      faculty_id: facultyId,
-      date: today,
-      period_number: period,
-      subject: subject,
-      marked_by: markedBy,
-      marked_at: now,
-    }));
+    // If multiple continuous periods are selected, create one record per period
+    const periodsToSave = selectedPeriods.length ? selectedPeriods : [period];
+    const records = students.flatMap(s => (
+      periodsToSave.map(pn => ({
+        student_id: s.id,
+        status: s.status,
+        class_id: classId,
+        faculty_id: facultyId,
+        date: today,
+        period_number: pn,
+        subject: subject,
+        marked_by: markedBy,
+        marked_at: now,
+      }))
+    ));
     const { error } = await supabase
       .from('attendance_records')
       .insert(records);
@@ -136,22 +140,13 @@ const AttendanceMarking = () => {
       </header>
 
       <main className="container mx-auto px-4 py-8 space-y-6">
-        {/* Class Selector & Info */}
+        {/* Class Info */}
         <Card className="shadow-medium">
           <div className="p-6">
-            <div className="mb-4">
-              <label className="font-semibold mr-2">Select Class:</label>
-              <select value={classId} onChange={e => setClassId(e.target.value)} className="border rounded px-2 py-1">
-                <option value="">-- Select Class --</option>
-                {classList.map(cls => (
-                  <option key={cls.id} value={cls.id}>{cls.class_name}</option>
-                ))}
-              </select>
-            </div>
             <div className="grid md:grid-cols-4 gap-4">
               <div>
-                <p className="text-sm text-muted-foreground">Period</p>
-                <p className="text-lg font-semibold">Period {period}</p>
+                <p className="text-sm text-muted-foreground">Period(s)</p>
+                <p className="text-lg font-semibold">{selectedPeriods.join(', ')}</p>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Time</p>

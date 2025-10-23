@@ -31,6 +31,7 @@ import AdvisorAttendanceReport from "./pages/faculty/AdvisorAttendanceReport";
 import AdvisorAttendanceEdit from "./pages/faculty/AdvisorAttendanceEdit";
 import PublishResults from "./pages/faculty/PublishResults";
 import NotFound from "./pages/NotFound";
+import MobileBack from "./components/MobileBack";
 
 
 // Wrapper to extract classId from query params and pass to AdvisorAttendanceReport
@@ -49,6 +50,8 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
+        {/* Global mobile back button visible on all pages (mobile only) */}
+        <MobileBack />
         <Routes>
           <Route path="/" element={<Splash />} />
           <Route path="/login-selection" element={<LoginSelection />} />
